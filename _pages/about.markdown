@@ -9,11 +9,11 @@ Hi there! I'm **Qi**. I have a passion for understanding the nuances of data and
 
 ### Educational Journey
 
-**MSc in Data Science**, University of Bath (Oct 2018 – Nov 2019): 
+**MSc in Data Science**, University of Bath (Nov 2019): 
 - Specialized in machine learning, deep learning, and applied data science. 
 - Dissertation on "Classifying deep features in an urban environment".
   
-**BSc in Applied Physics**, China Jiliang University (Sep 2011 – Jun 2015):
+**BSc in Applied Physics**, China Jiliang University (Jun 2015):
  - Concentrated on advanced mathematics and physics. 
  - Awarded for my graduation thesis on "The Method and Application of Monte Carlo".
 
