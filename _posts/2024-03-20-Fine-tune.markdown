@@ -1,0 +1,371 @@
+---
+layout: post
+title:  "Mixtral fine-tune guide"
+date:   2024-03-20 05:44:48 +0000
+categories: jekyll update
+---
+preparing the Mixtral model and the Arxiv dataset for fine-tuning. This approach will be specifically tailored to working with the Mixtral-8x7B Large Language Model (LLM), a pretrained generative Sparse Mixture of Experts, and a dataset derived from around 100 Arxiv papers, split into chunks totaling 24,338 rows.
+
+### Preparing the Mixtral Model and Arxiv Dataset for Fine-Tuning
+
+### Loading the Mixtral-8x7B LLM
+
+[mistralai/Mixtral-8x7B-v0.1 · Hugging Face](https://huggingface.co/mistralai/Mixtral-8x7B-v0.1)
+
+The Mixtral model, being a state-of-the-art generative Sparse Mixture of Experts, is designed to handle a wide range of NLP tasks efficiently. Given its architecture, it's especially well-suited for fine-tuning on specialized datasets to enhance its performance in specific domains.
+
+1. **Environment Setup**:
+    - Ensure you have an environment capable of handling the computational requirements of Mixtral-8x7B, including sufficient GPU resources.
+    - Install necessary Python libraries, if not already done:
+        
+        ```bash
+        !pip install gradio
+        !pip install -q -U bitsandbytes
+        !pip install -q -U git+https://github.com/huggingface/transformers.git
+        !pip install -q -U git+https://github.com/huggingface/peft.git
+        !pip install -q -U git+https://github.com/huggingface/accelerate.git
+        !pip install -q trl xformers wandb datasets einops sentencepiece
+        ```
+        
+    
+    ```python
+    from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig,HfArgumentParser,TrainingArguments,pipeline, logging, TextStreamer
+    from peft import LoraConfig, PeftModel, prepare_model_for_kbit_training, get_peft_model
+    import os, torch, wandb, platform, warnings
+    from datasets import load_dataset
+    from trl import SFTTrainer
+    from huggingface_hub import notebook_login
+    ```
+    
+2. **Model Loading**:
+    - Use the Hugging Face Transformers library to load the Mixtral model. If the model is directly available through Hugging Face, you can load it using the `AutoModel` class. If it's a custom model or not available in the Transformers library, additional steps for manual loading may be necessary.
+    
+    ```python
+    # Load base model
+    base_model = "mistralai/Mistral-7B-v0.1"
+    
+    bnb_config = BitsAndBytesConfig(
+        load_in_4bit= True,
+        bnb_4bit_quant_type= "nf4",
+        bnb_4bit_compute_dtype= torch.bfloat16,
+        bnb_4bit_use_double_quant= False,
+    )
+    model = AutoModelForCausalLM.from_pretrained(
+        base_model,
+        low_cpu_mem_usage=True,
+        quantization_config=bnb_config,
+        device_map={"": 0}
+    )
+    ```
+    
+
+### Preparing the Dataset
+
+The dataset, consisting of text from approximately 100 Arxiv papers split into 24,338 chunks, presents a rich source for fine-tuning the Mixtral model on academic content.
+
+[kiki7sun/Academic0119 · Datasets at Hugging Face](https://huggingface.co/datasets/kiki7sun/Academic0119)
+
+1. **Dataset Preparation**:
+    - Split the dataset into training, validation, and test sets. A common split ratio is 80% for training, 10% for validation, and 10% for testing.
+    - Preprocess the data to fit the input format expected by Mixtral. This might involve tokenization using the tokenizer that matches the Mixtral model's training corpus.
+2. **Tokenization and Data Loading**:
+    - Tokenize the dataset using the appropriate tokenizer for Mixtral. This step converts text data into a format that can be processed by the model:
+        
+        ```python
+        dataset = load_dataset("kiki7sun/Academic0119")
+        train_dataset = dataset["train"]
+        eval_dataset = dataset["validation"]
+        test_dataset = dataset["test"]
+        
+        max_length = 1200 # This was an appropriate max length for my dataset
+        
+        def generate_and_tokenize_prompt2(prompt):
+            result = tokenizer(
+                formatting_func(prompt),
+                truncation=True,
+                max_length=max_length,
+                padding="max_length",
+            )
+            result["labels"] = result["input_ids"].copy()
+            return result
+        
+        tokenized_train_dataset = train_dataset.map(generate_and_tokenize_prompt2)
+        tokenized_val_dataset = eval_dataset.map(generate_and_tokenize_prompt2)
+        tokenized_test_dataset = test_dataset.map(generate_and_tokenize_prompt2)
+        ```
+        
+    - Prepare PyTorch or TensorFlow datasets (depending on your preference and the model's compatibility) for training, validation, and testing.
+
+### Fine-Tuning the Model
+
+With the model and data ready, you'll proceed to fine-tune Mixtral on the Arxiv dataset. This involves setting up a training loop, defining the loss function and optimizer, and iterating over the dataset to adjust the model weights.
+
+1. **Define the Training Loop**:
+    - Outline the steps for each epoch, including data loading, model training, validation, and performance logging.
+    
+    ```python
+    model = prepare_model_for_kbit_training(model)
+    peft_config = LoraConfig(
+            r=16,
+            lora_alpha=16,
+            lora_dropout=0.05,
+            bias="none",
+            task_type="CAUSAL_LM",
+            target_modules=["q_proj", "k_proj", "v_proj", "o_proj","gate_proj"]
+        )
+    model = get_peft_model(model, peft_config)
+    
+    # Training Arguments
+    # Hyperparameters should beadjusted based on the hardware you using
+    training_arguments = TrainingArguments(
+        output_dir= "./results",
+        num_train_epochs= 1,
+        per_device_train_batch_size= 2,
+        gradient_accumulation_steps= 1,
+        optim = "paged_adamw_8bit",
+        save_steps= 30,
+        logging_steps= 30,
+        learning_rate= 2e-4,
+        weight_decay= 0.001,
+        fp16= False,
+        bf16= False,
+        max_grad_norm= 0.3,
+        max_steps= -1,
+        warmup_ratio= 0.3,
+        group_by_length= True,
+        lr_scheduler_type= "constant",
+        report_to="wandb",
+        # eval_accumulation_steps=30,
+        gradient_checkpointing_kwargs = 'use_reentrant'
+    )
+    ```
+    
+2. **Model Training**:
+    - Train the model using the prepared dataset, adjusting hyperparameters as necessary to optimize performance.
+    
+    ```python
+    trainer = transformers.Trainer(
+        model=model,
+        train_dataset=tokenized_train_dataset,
+        eval_dataset=tokenized_val_dataset,
+        args=transformers.TrainingArguments(
+            output_dir=output_dir,
+            warmup_steps=5,
+            per_device_train_batch_size=1,
+            gradient_checkpointing=True,
+            gradient_accumulation_steps=4,
+            max_steps=60,
+            learning_rate=2.5e-5,
+            logging_steps=25,
+            fp16=True,
+            optim="paged_adamw_8bit",
+            logging_dir="./logs",        # Directory for storing logs
+            save_strategy="steps",       # Save the model checkpoint every logging step
+            save_steps=30,                # Save checkpoints every 50 steps
+            evaluation_strategy="steps", # Evaluate the model every logging step
+            eval_steps=30,               # Evaluate and save checkpoints every 50 steps
+            do_eval=True,                # Perform evaluation at the end of training
+            report_to="wandb",           # Comment this out if you don't want to use weights & baises
+            run_name=f"{run_name}-{datetime.now().strftime('%Y-%m-%d-%H-%M')}"          # Name of the W&B run (optional)
+        ),
+        data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
+    )
+    ```
+    
+3. **Save the fine-tuned model**:
+    - After training, evaluate the model's performance on the test set to gauge its effectiveness in generating or classifying text based on the Arxiv papers.
+    
+    ```python
+    # Save the fine-tuned model
+    trainer.model.save_pretrained(new_model)
+    wandb.finish()
+    model.config.use_cache = True
+    
+    model.push_to_hub('academic0222', use_temp_dir=False)
+    tokenizer.push_to_hub('academic0222', use_temp_dir=False)
+    ```
+    
+
+Writing a guide on how to implement QLoRA, PPO (Proximal Policy Optimization), and DPO (Dynamic Policy Optimization) with code examples and step-by-step instructions is an excellent way to complement your article on the introduction, principles, operation, design, weaknesses, and benefits of these methods. Here's a general outline you might consider for each method, including key points to cover and potential code snippets in Python to get you started.
+
+### LoRA
+
+### Implementation Steps
+
+1. **Model Adaptation**:
+    
+    ```python
+    from peft import prepare_model_for_kbit_training
+    
+    model.gradient_checkpointing_enable()
+    model = prepare_model_for_kbit_training(model)
+    
+    from peft import LoraConfig, get_peft_model
+    
+    config = LoraConfig(
+        r=8,
+        lora_alpha=16,
+        target_modules=[
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "w1",
+            "w2",
+            "w3",
+            "lm_head",
+        ],
+        bias="none",
+        lora_dropout=0.1,  # Conventional
+        task_type="CAUSAL_LM",
+    )
+    
+    model = get_peft_model(model, config)
+    ```
+    
+2. **Training Process**:
+    - Setting up the training loop, including loss functions, optimizers, and learning rate schedules suitable for fine-tuning.
+    
+    ```python
+    import transformers
+    from datetime import datetime
+    
+    project = "academic-LoRA-0222"
+    base_model_name = "mixtral"
+    run_name = base_model_name + "-" + project
+    output_dir = "./" + run_name
+    
+    tokenizer.pad_token = tokenizer.eos_token
+    
+    trainer = transformers.Trainer(
+        model=model,
+        train_dataset=tokenized_train_dataset,
+        eval_dataset=tokenized_val_dataset,
+        save_embedding_layers=True,
+        args=transformers.TrainingArguments(
+            output_dir=output_dir,
+            warmup_steps=5,
+            per_device_train_batch_size=1,
+            gradient_checkpointing=True,
+            gradient_accumulation_steps=4,
+            max_steps=60,
+            learning_rate=2.5e-5,
+            logging_steps=25,
+            fp16=True,
+            optim="paged_adamw_8bit",
+            logging_dir="./logs",        # Directory for storing logs
+            save_strategy="steps",       # Save the model checkpoint every logging step
+            save_steps=30,                # Save checkpoints every 50 steps
+            evaluation_strategy="steps", # Evaluate the model every logging step
+            eval_steps=30,               # Evaluate and save checkpoints every 50 steps
+            do_eval=True,                # Perform evaluation at the end of training
+            report_to="wandb",           # Comment this out if you don't want to use weights & baises
+            run_name=f"{run_name}-{datetime.now().strftime('%Y-%m-%d-%H-%M')}"          # Name of the W&B run (optional)
+        ),
+        data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
+    )
+    
+    model.config.use_cache = False  # silence the warnings. Please re-enable for inference!
+    trainer.train()
+    ```
+    
+3. **Evaluation and Adjustment**:
+    - Techniques for evaluating the fine-tuned model on the validation set.
+    
+    ```python
+    model.save('my_model.h5', save_embedding_layers=True)
+    ```
+    
+
+### QLoRA
+
+### Implementation Steps
+
+1. **Model Adaptation**:
+    
+    ```python
+    from peft import prepare_model_for_kbit_training
+    
+    model.gradient_checkpointing_enable()
+    model = prepare_model_for_kbit_training(model)
+    
+    from peft import LoraConfig, get_peft_model
+    
+    config = LoraConfig(
+        r=32,
+        lora_alpha=64,
+        target_modules=[
+            "q_proj",
+            "k_proj",
+            "v_proj",
+            "o_proj",
+            "w1",
+            "w2",
+            "w3",
+            "lm_head",
+        ],
+        bias="none",
+        lora_dropout=0.1,  
+        task_type="CAUSAL_LM",
+    )
+    
+    model = get_peft_model(model, config)
+    ```
+    
+2. **Training Process**:
+    - Setting up the training loop, including loss functions, optimizers, and learning rate schedules suitable for fine-tuning.
+    
+    ```python
+    import transformers
+    from datetime import datetime
+    
+    project = "academic-finetune-QLoRA-0121"
+    base_model_name = "mixtral"
+    run_name = base_model_name + "-" + project
+    output_dir = "./" + run_name
+    
+    trainer = transformers.Trainer(
+        model=model,
+        train_dataset=tokenized_train_dataset,
+        eval_dataset=tokenized_val_dataset,
+        save_embedding_layers=True,
+        tokenizer=tokenizer,
+        args=transformers.TrainingArguments(
+            output_dir=output_dir,
+            warmup_steps=1,
+            per_device_train_batch_size=2,
+            gradient_accumulation_steps=1,
+            gradient_checkpointing=True,
+            max_steps=30,
+            learning_rate=2.5e-5, # Want a small lr for finetuning
+            fp16=True,
+            optim="paged_adamw_8bit",
+            logging_steps=30,              # When to start reporting loss
+            logging_dir="./logs",        # Directory for storing logs
+            save_strategy="steps",       # Save the model checkpoint every logging step
+            save_steps=30,                # Save checkpoints every 50 steps
+            evaluation_strategy="steps", # Evaluate the model every logging step
+            eval_steps=30,               # Evaluate and save checkpoints every 50 steps
+            do_eval=True,                # Perform evaluation at the end of training
+            report_to="wandb",           # Comment this out if you don't want to use weights & baises
+            run_name=f"{run_name}-{datetime.now().strftime('%Y-%m-%d-%H-%M')}"          # Name of the W&B run (optional)
+            save_embedding_layer=True,
+            tokenizer=tokenizer
+        ),
+        data_collator=transformers.DataCollatorForLanguageModeling(tokenizer, mlm=False),
+    )
+    
+    model.config.use_cache = False  # silence the warnings. Please re-enable for inference!
+    trainer.train()
+    ```
+    
+3. **Evaluation and Adjustment**:
+    - Techniques for evaluating the fine-tuned model on the validation set.
+    
+    ```python
+    trainer.push_to_hub('my_model')
+    tokenizer.push_to_hub('my_model')
+    ```
+    
+
+This outline provides a structure for your guide, focusing on practical implementation aspects. Tailoring the content to your audience's skill level and including comprehensive code examples will make your guide an invaluable resource for those interested in quantum and reinforcement learning techniques.
