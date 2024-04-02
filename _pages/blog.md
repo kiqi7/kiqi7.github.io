@@ -25,7 +25,7 @@ Here, I dive deep into topics that fascinate me, from the intricate world of **M
 | Article  | Topic |
 | :---------- | ------:  |
 | [Fine Tuned Method](/machine-learning/2024/01/14/Fine-Tuned-Method.html)| Fine-tune, QLoRA, DPO, PPO   |
-| [Workshop Event Summary: Embrace the Future with AI](/https://medium.com/@kiqisun/workshop-event-summary-embrace-the-future-with-ai-8d7ce8aacf80)| Trend   |
+| [Workshop Event Summary: Embrace the Future with AI](https://medium.com/@kiqisun/workshop-event-summary-embrace-the-future-with-ai-8d7ce8aacf80)| Trend   |
 
 
 ## Data
