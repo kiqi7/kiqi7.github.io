@@ -4,13 +4,11 @@
 
 layout: home
 ---
-# Welcome to My Portfolio
 
-## About Me
 <!-- ![Qi Chen](assets/img/IMG_2789.PNG) -->
 <img src="/assets/img/IMG_2789.PNG" width="200"/>
 
-
+# Welcome to My Portfolio
 I am Qi Chen, a passionate algorithm engineer with a love for turning complex datasets into actionable insights. With a background in applied physics and data science, I bring a rigorous analytical approach to solving problems.
 
 As a machine learning engineer with a passion for leveraging cutting-edge technologies to solve complex problems, I take pride in my ability to drive innovation and deliver impactful solutions. With a strong foundation in data science, mathematics, and computer science, I possess a comprehensive understanding of machine learning algorithms, deep learning architectures, and their practical applications.
