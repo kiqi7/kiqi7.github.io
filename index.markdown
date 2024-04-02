@@ -6,7 +6,7 @@ layout: home
 ---
 
 <!-- ![Qi Chen](assets/img/IMG_2789.PNG) -->
-<img src="/assets/img/IMG_2789.PNG" width="200"/>
+<img style="float:right" src="/assets/img/IMG_2801.PNG" width="369"/>
 
 # Welcome to My Portfolio
 I am Qi Chen, a passionate algorithm engineer with a love for turning complex datasets into actionable insights. With a background in applied physics and data science, I bring a rigorous analytical approach to solving problems.
