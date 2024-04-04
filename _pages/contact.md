@@ -23,6 +23,9 @@ If you have any questions, project inquiries, or would like to discuss potential
 
 You can also connect with me on [**LinkedIn**](https://www.linkedin.com/in/qi-chen-17201a194) , a professional networking platform. I regularly share updates, insights, and thoughts related to machine learning, data science, and technology. Feel free to send me a connection request, and let's grow our professional network.
 
+Directly send me message by the link:
 
+
+[**💬Discussions**](https://github.com/kiqi7/kiqi7.github.io/discussions/1)
 
 Thank you for visiting  website. I look forward to hearing from you and exploring potential opportunities for collaboration or knowledge exchange in the exciting field of machine learning and Generative AI.
