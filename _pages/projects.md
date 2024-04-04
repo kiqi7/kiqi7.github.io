@@ -117,7 +117,7 @@ Explore some of the projects I've worked on below. Click on a project title to j
 ## Learning to Play Space Invaders Using Deep Q-Networks
 {: #learning-to-play-space-invaders-using-deep-q-networks }
 
-[Download Deep Q-Networks Technical Report (PDF)](link-to-your-cv.pdf)
+[Download Deep Q-Networks Technical Report (PDF)](/files/RL_Project_Report.pdf))
 - **Overview**: This project was been applied deep reinforcement learning techniques, specifically Deep Q-Networks (DQN), to the classic Atari 2600 game, Space Invaders. The goal was to develop an artificial intelligence agent capable of playing the game by leveraging deep neural networks and reinforcement learning algorithms.
 
 - **Approach**: To handle the high-dimensional state space represented by game screen images, developed a Convolutional Neural Network (CNN) architecture that could effectively process the game screens and provide an optimized Q-policy for selecting actions. I experimented with various hyperparameters, such as the experience replay batch size and training duration, to fine-tune the model's performance.
