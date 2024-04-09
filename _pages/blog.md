@@ -44,6 +44,10 @@ This section can cover topics related to data processing, analysis, and visualiz
 - Named entity recognition (NER), Sentiment analysis, Machine translation
 - Dialogue systems and chatbots
 
+| Article  | Topic |
+| :---------- | ------:  |
+| [Advanced Sentiment Analysis and Multi-classification of Product Comments for Business Intelligence Enhancement](/machine-learning/2021/03/16/Advanced-Sentiment-Analysis-and-Multi-classification.html)| Sentiment Analysis, Embedding, Multi-Classification   |
+
 ## Computer Vision (CV)
 
 - Image processing and computer vision techniques

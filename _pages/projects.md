@@ -72,7 +72,10 @@ Explore some of the projects I've worked on below. Click on a project title to j
 ## Product Profile and Sentiment Analysis
 {: #product-profile-and-sentiment-analysis }
 
-[Download Product Profile Technical Report (PPT)](/files/product_profile.pdf)
+[Download Product Profile Overview (PPT)](/files/product_profile.pdf)
+
+
+[Technical Report (PDF)](/files/Sentiment_Analysis.pdf)
 - **Overview**: This project focused on developing and implementing methods for sentiment analysis and labeling system on product comments from TianMao, Taobao and Jingdong, e-commerce platforms in China.
 
 - **Objectives**: The primary goals were to help companies better understand customer needs, address current or predictable problems, and increase profits through effective sentiment analysis and multi-label classification.
