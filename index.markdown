@@ -21,7 +21,7 @@ layout: home
 
 <!-- Audio Player -->
 <audio id="multilingual-audio" controls>
-  <source src="/assets/audio/homepage-home.wav" type="audio/wav">
+  <source src="/assets/audio/homepage-english.wav" type="audio/wav">
   Your browser does not support the audio element.
 </audio>
 
