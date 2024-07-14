@@ -96,7 +96,7 @@ Explore some of the projects I've worked on below. Click on a project title to j
 {: #classifying-deep-features-in-an-urban-environment }
 ### Master's Thesis. University of Bath.
 
-[Download M (PDF)](link-to-your-cv.pdf)
+[Download Master Thesis (PDF)](/files/Master’s_thesis _Qi Chen_2019.pdf)
 - **Overview**: This project aimed to implement an end-to-end method for urban classification based on deep features extracted from satellite images. The objective was to develop an easy-to-use technique for road pattern extraction that could capture the character of urban layouts and categorize different cities around the world.
 
 - **Approach**: Deep learning architectures, specifically Convolutional Neural Networks (CNNs), were employed to simulate the human brain's pattern recognition capabilities. The project focused on finding a way to achieve high accuracy in a short time by studying the performance of various hyperparameters and activation functions.
